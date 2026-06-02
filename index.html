@@ -16,324 +16,104 @@
       --border: #dee2e6;
       --bg: #f8fffe;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
 
-    body {
-      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    .header { background:var(--green); color:white; padding:16px; text-align:center; position:sticky; top:0; z-index:100; box-shadow:0 2px 8px rgba(0,0,0,0.2); }
+    .header h1 { font-size:16px; font-weight:bold; }
+    .header p { font-size:12px; opacity:0.85; margin-top:2px; }
 
-    /* ヘッダー */
-    .header {
-      background: var(--green);
-      color: white;
-      padding: 16px;
-      text-align: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .header h1 { font-size: 16px; font-weight: bold; }
-    .header p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+    #loading { display:flex; flex-direction:column; align-items:center; justify-content:center; height:60vh; gap:16px; }
+    .spinner { width:40px; height:40px; border:4px solid var(--green-pale); border-top-color:var(--green); border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* ローディング */
-    #loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 60vh;
-      gap: 16px;
-    }
-    .spinner {
-      width: 40px; height: 40px;
-      border: 4px solid var(--green-pale);
-      border-top-color: var(--green);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .container { padding:16px; max-width:480px; margin:0 auto; }
 
-    /* メインコンテンツ */
-    .container { padding: 16px; max-width: 480px; margin: 0 auto; }
+    .steps { display:flex; justify-content:center; gap:8px; margin-bottom:20px; padding:12px; background:white; border-radius:12px; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+    .step { display:flex; flex-direction:column; align-items:center; gap:4px; flex:1; }
+    .step-num { width:28px; height:28px; border-radius:50%; background:var(--border); color:var(--gray); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; transition:all 0.3s; }
+    .step.active .step-num { background:var(--green); color:white; }
+    .step.done .step-num { background:var(--green-light); color:white; }
+    .step-label { font-size:10px; color:var(--gray); text-align:center; }
+    .step.active .step-label { color:var(--green); font-weight:bold; }
+    .step-line { flex:0 0 20px; height:2px; background:var(--border); margin-top:14px; }
+    .step-line.done { background:var(--green-light); }
 
-    /* ステップ表示 */
-    .steps {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 20px;
-      padding: 12px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-    .step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      flex: 1;
-    }
-    .step-num {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      background: var(--border);
-      color: var(--gray);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: bold;
-      transition: all 0.3s;
-    }
-    .step.active .step-num { background: var(--green); color: white; }
-    .step.done .step-num { background: var(--green-light); color: white; }
-    .step-label { font-size: 10px; color: var(--gray); text-align: center; }
-    .step.active .step-label { color: var(--green); font-weight: bold; }
-    .step-line { flex: 0 0 20px; height: 2px; background: var(--border); margin-top: 14px; }
-    .step-line.done { background: var(--green-light); }
+    #page-calendar,#page-form,#page-confirm,#page-complete { display:none; }
 
-    /* カレンダー画面 */
-    #page-calendar { display: none; }
-    #page-form { display: none; }
-    #page-confirm { display: none; }
-    #page-complete { display: none; }
+    .section-title { font-size:15px; font-weight:bold; color:var(--green); margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--green-pale); }
 
-    .section-title {
-      font-size: 15px;
-      font-weight: bold;
-      color: var(--green);
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--green-pale);
-    }
+    .cal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .cal-title { font-size:16px; font-weight:bold; }
+    .cal-nav { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 12px; cursor:pointer; font-size:14px; color:var(--green); }
+    .cal-nav:disabled { opacity:0.3; cursor:default; }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+    .cal-dow { text-align:center; font-size:11px; font-weight:bold; padding:6px 0; color:var(--gray); }
+    .cal-dow:first-child { color:#e53e3e; }
+    .cal-dow:last-child { color:#3182ce; }
+    .cal-day { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:8px; font-size:12px; cursor:pointer; border:1px solid transparent; transition:all 0.2s; gap:2px; }
+    .cal-day.empty,.cal-day.past { cursor:default; color:#ccc; }
+    .cal-day.full { background:#ffe8e8; color:#c53030; cursor:default; }
+    .cal-day.avail-2 { background:var(--green-pale); color:var(--green); }
+    .cal-day.avail-1 { background:#fef9c3; color:#92400e; }
+    .cal-day.sunday { color:#e53e3e; }
+    .cal-day.saturday { color:#3182ce; }
+    .cal-day:not(.empty):not(.past):not(.full):hover { border-color:var(--green); transform:scale(1.05); }
+    .cal-day.selected { background:var(--green)!important; color:white!important; border-color:var(--green); }
+    .cal-day-num { font-weight:bold; }
+    .cal-day-status { font-size:9px; }
+    .cal-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; font-size:11px; }
+    .legend-item { display:flex; align-items:center; gap:4px; }
+    .legend-dot { width:12px; height:12px; border-radius:3px; }
 
-    /* カレンダー */
-    .cal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-    .cal-title { font-size: 16px; font-weight: bold; }
-    .cal-nav {
-      background: none; border: 1px solid var(--border);
-      border-radius: 8px; padding: 6px 12px;
-      cursor: pointer; font-size: 14px;
-      color: var(--green);
-    }
-    .cal-nav:disabled { opacity: 0.3; cursor: default; }
+    .form-group { margin-bottom:16px; }
+    .form-label { display:block; font-size:13px; font-weight:bold; margin-bottom:6px; color:var(--text); }
+    .required { color:#e53e3e; font-size:11px; margin-left:4px; }
+    .form-input,.form-select,.form-textarea { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit; background:white; transition:border-color 0.2s; }
+    .form-input:focus,.form-select:focus,.form-textarea:focus { outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(45,106,79,0.1); }
+    .form-textarea { resize:vertical; min-height:80px; }
 
-    .cal-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-    }
-    .cal-dow {
-      text-align: center;
-      font-size: 11px;
-      font-weight: bold;
-      padding: 6px 0;
-      color: var(--gray);
-    }
-    .cal-dow:first-child { color: #e53e3e; }
-    .cal-dow:last-child { color: #3182ce; }
+    .radio-group { display:flex; flex-direction:column; gap:8px; }
+    .radio-item { display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border); border-radius:8px; cursor:pointer; transition:all 0.2s; }
+    .radio-item:has(input:checked) { border-color:var(--green); background:var(--green-pale); }
+    .radio-item input { accent-color:var(--green); }
 
-    .cal-day {
-      aspect-ratio: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all 0.2s;
-      gap: 2px;
-    }
-    .cal-day.empty { cursor: default; }
-    .cal-day.past { color: #ccc; cursor: default; }
-    .cal-day.full { background: #ffe8e8; color: #c53030; cursor: default; }
-    .cal-day.avail-2 { background: var(--green-pale); color: var(--green); }
-    .cal-day.avail-1 { background: #fef9c3; color: #92400e; }
-    .cal-day.sunday { color: #e53e3e; }
-    .cal-day.saturday { color: #3182ce; }
-    .cal-day:not(.empty):not(.past):not(.full):hover {
-      border-color: var(--green);
-      transform: scale(1.05);
-    }
-    .cal-day.selected {
-      background: var(--green) !important;
-      color: white !important;
-      border-color: var(--green);
-    }
-    .cal-day-num { font-weight: bold; }
-    .cal-day-status { font-size: 9px; }
+    .selected-date-badge { background:var(--green); color:white; padding:8px 16px; border-radius:20px; font-size:13px; font-weight:bold; display:inline-block; margin-bottom:16px; }
 
-    .cal-legend {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-      font-size: 11px;
-    }
-    .legend-item { display: flex; align-items: center; gap: 4px; }
-    .legend-dot {
-      width: 12px; height: 12px;
-      border-radius: 3px;
-    }
+    .file-upload-area { border:2px dashed var(--border); border-radius:8px; padding:20px; text-align:center; cursor:pointer; transition:all 0.2s; background:white; }
+    .file-upload-area:hover { border-color:var(--green); background:var(--green-pale); }
+    .file-upload-area.has-file { border-color:var(--green); background:var(--green-pale); }
+    .file-upload-icon { font-size:32px; margin-bottom:8px; }
+    .file-upload-text { font-size:13px; color:var(--gray); }
+    .file-upload-name { font-size:13px; color:var(--green); font-weight:bold; margin-top:8px; }
+    .file-upload-limit { font-size:11px; color:var(--gray); margin-top:4px; }
+    #fileInput { display:none; }
 
-    /* フォーム */
-    .form-group { margin-bottom: 16px; }
-    .form-label {
-      display: block;
-      font-size: 13px;
-      font-weight: bold;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
-    .required {
-      color: #e53e3e;
-      font-size: 11px;
-      margin-left: 4px;
-    }
-    .form-input, .form-select, .form-textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: inherit;
-      background: white;
-      transition: border-color 0.2s;
-    }
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      outline: none;
-      border-color: var(--green);
-      box-shadow: 0 0 0 3px rgba(45,106,79,0.1);
-    }
-    .form-textarea { resize: vertical; min-height: 80px; }
+    .conditional { display:none; }
+    .conditional.show { display:block; }
 
-    .radio-group { display: flex; flex-direction: column; gap: 8px; }
-    .radio-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .radio-item:has(input:checked) {
-      border-color: var(--green);
-      background: var(--green-pale);
-    }
-    .radio-item input { accent-color: var(--green); }
+    .confirm-table { width:100%; border-collapse:collapse; }
+    .confirm-table tr { border-bottom:1px solid var(--border); }
+    .confirm-table td { padding:10px 8px; font-size:13px; }
+    .confirm-table td:first-child { color:var(--gray); font-weight:bold; width:40%; white-space:nowrap; }
 
-    .selected-date-badge {
-      background: var(--green);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: bold;
-      display: inline-block;
-      margin-bottom: 16px;
-    }
+    .complete-icon { width:64px; height:64px; background:var(--green); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:32px; margin:0 auto 16px; }
+    .app-no { background:var(--green-pale); border:2px solid var(--green-light); border-radius:12px; padding:16px; text-align:center; margin:16px 0; }
+    .app-no-label { font-size:12px; color:var(--gray); }
+    .app-no-value { font-size:24px; font-weight:bold; color:var(--green); }
 
-    /* 確認画面 */
-    .confirm-table { width: 100%; border-collapse: collapse; }
-    .confirm-table tr { border-bottom: 1px solid var(--border); }
-    .confirm-table td {
-      padding: 10px 8px;
-      font-size: 13px;
-    }
-    .confirm-table td:first-child {
-      color: var(--gray);
-      font-weight: bold;
-      width: 40%;
-      white-space: nowrap;
-    }
+    .btn { width:100%; padding:14px; border:none; border-radius:12px; font-size:15px; font-weight:bold; cursor:pointer; transition:all 0.2s; font-family:inherit; }
+    .btn-primary { background:var(--green); color:white; }
+    .btn-primary:hover { background:#1e4d38; }
+    .btn-primary:disabled { background:var(--border); color:var(--gray); cursor:default; }
+    .btn-secondary { background:white; color:var(--green); border:2px solid var(--green); margin-top:8px; }
+    .btn-accent { background:var(--accent); color:white; }
+    .btn-row { display:flex; flex-direction:column; gap:8px; margin-top:20px; }
 
-    /* 完了画面 */
-    .complete-icon {
-      width: 64px; height: 64px;
-      background: var(--green);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 32px;
-      margin: 0 auto 16px;
-    }
-    .app-no {
-      background: var(--green-pale);
-      border: 2px solid var(--green-light);
-      border-radius: 12px;
-      padding: 16px;
-      text-align: center;
-      margin: 16px 0;
-    }
-    .app-no-label { font-size: 12px; color: var(--gray); }
-    .app-no-value { font-size: 24px; font-weight: bold; color: var(--green); }
-
-    /* ボタン */
-    .btn {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-    .btn-primary {
-      background: var(--green);
-      color: white;
-    }
-    .btn-primary:hover { background: #1e4d38; }
-    .btn-primary:disabled { background: var(--border); color: var(--gray); cursor: default; }
-    .btn-secondary {
-      background: white;
-      color: var(--green);
-      border: 2px solid var(--green);
-      margin-top: 8px;
-    }
-    .btn-accent {
-      background: var(--accent);
-      color: white;
-    }
-
-    .btn-row { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
-
-    /* カード */
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      margin-bottom: 16px;
-    }
-
-    .notice {
-      background: #fff8e1;
-      border-left: 4px solid var(--accent);
-      padding: 10px 12px;
-      border-radius: 0 8px 8px 0;
-      font-size: 12px;
-      margin-bottom: 16px;
-      line-height: 1.6;
-    }
-
-    .error-msg {
-      color: #e53e3e;
-      font-size: 12px;
-      margin-top: 4px;
-    }
+    .card { background:white; border-radius:12px; padding:16px; box-shadow:0 1px 4px rgba(0,0,0,0.08); margin-bottom:16px; }
+    .notice { background:#fff8e1; border-left:4px solid var(--accent); padding:10px 12px; border-radius:0 8px 8px 0; font-size:12px; margin-bottom:16px; line-height:1.6; }
+    .info-box { background:#e8f4fd; border-left:4px solid #3182ce; padding:10px 12px; border-radius:0 8px 8px 0; font-size:12px; margin-top:8px; line-height:1.6; color:#1a365d; }
+    .hint { font-size:11px; color:var(--gray); margin-top:4px; line-height:1.5; }
   </style>
 </head>
 <body>
@@ -343,59 +123,36 @@
   <p>ご利用の10日前までにお申し込みください</p>
 </div>
 
-<!-- ローディング -->
 <div id="loading">
   <div class="spinner"></div>
-  <p style="color: var(--gray); font-size: 14px;">読み込み中...</p>
+  <p style="color:var(--gray);font-size:14px;">読み込み中...</p>
 </div>
 
 <div class="container" id="main" style="display:none;">
-
-  <!-- ステップ表示 -->
   <div class="steps">
-    <div class="step active" id="step1">
-      <div class="step-num">1</div>
-      <div class="step-label">日程選択</div>
-    </div>
+    <div class="step active" id="step1"><div class="step-num">1</div><div class="step-label">日程選択</div></div>
     <div class="step-line" id="line1"></div>
-    <div class="step" id="step2">
-      <div class="step-num">2</div>
-      <div class="step-label">詳細入力</div>
-    </div>
+    <div class="step" id="step2"><div class="step-num">2</div><div class="step-label">詳細入力</div></div>
     <div class="step-line" id="line2"></div>
-    <div class="step" id="step3">
-      <div class="step-num">3</div>
-      <div class="step-label">確認</div>
-    </div>
+    <div class="step" id="step3"><div class="step-num">3</div><div class="step-label">確認</div></div>
     <div class="step-line" id="line3"></div>
-    <div class="step" id="step4">
-      <div class="step-num">4</div>
-      <div class="step-label">完了</div>
-    </div>
+    <div class="step" id="step4"><div class="step-num">4</div><div class="step-label">完了</div></div>
   </div>
 
   <!-- ページ1：カレンダー -->
   <div id="page-calendar">
     <div class="card">
       <div class="section-title">📅 ご利用日を選択してください</div>
-      <div class="notice">
-        ◯2 = 2台空き　◯1 = 1台空き　✕ = 満車<br>
-        ご利用の10日前まで受付可能です
-      </div>
+      <div class="notice">◯2 = 2台空き　◯1 = 1台空き　✕ = 満車<br>ご利用の10日前まで受付可能です</div>
       <div class="cal-header">
         <button class="cal-nav" id="prevMonth" onclick="changeMonth(-1)">◀</button>
         <div class="cal-title" id="calTitle"></div>
         <button class="cal-nav" id="nextMonth" onclick="changeMonth(1)">▶</button>
       </div>
       <div class="cal-grid">
-        <div class="cal-dow">日</div>
-        <div class="cal-dow">月</div>
-        <div class="cal-dow">火</div>
-        <div class="cal-dow">水</div>
-        <div class="cal-dow">木</div>
-        <div class="cal-dow">金</div>
-        <div class="cal-dow">土</div>
-        <div id="calDays"></div>
+        <div class="cal-dow">日</div><div class="cal-dow">月</div><div class="cal-dow">火</div>
+        <div class="cal-dow">水</div><div class="cal-dow">木</div><div class="cal-dow">金</div><div class="cal-dow">土</div>
+        <div id="calDays" style="display:contents;"></div>
       </div>
       <div class="cal-legend">
         <div class="legend-item"><div class="legend-dot" style="background:var(--green-pale)"></div>空き2台</div>
@@ -404,9 +161,7 @@
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btnToForm" onclick="goToForm()" disabled>
-        この日程で申請する →
-      </button>
+      <button class="btn btn-primary" id="btnToForm" onclick="goToForm()" disabled>この日程で申請する →</button>
     </div>
   </div>
 
@@ -422,7 +177,7 @@
       </div>
       <div class="form-group">
         <label class="form-label">団体所在地<span class="required">必須</span></label>
-        <input type="text" class="form-input" id="groupAddress" placeholder="例：青森県南津軽郡田舎館村">
+        <input type="text" class="form-input" id="groupAddress" placeholder="例：田舎館村大字田舎舘字中辻123-1">
       </div>
       <div class="form-group">
         <label class="form-label">代表者名<span class="required">必須</span></label>
@@ -448,18 +203,19 @@
         <label class="form-label">使用台数<span class="required">必須</span></label>
         <div class="radio-group">
           <label class="radio-item">
-            <input type="radio" name="busCount" value="1台（10人以上40人以下）">
+            <input type="radio" name="busCount" value="1台（10人以上40人以下）" onchange="updatePassengersLimit(1)">
             1台（10人以上40人以下）
           </label>
           <label class="radio-item">
-            <input type="radio" name="busCount" value="2台（40人超80人以下）">
+            <input type="radio" name="busCount" value="2台（40人超80人以下）" onchange="updatePassengersLimit(2)">
             2台（40人超80人以下）
           </label>
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">乗車予定人数<span class="required">必須</span></label>
-        <input type="number" class="form-input" id="passengers" placeholder="例：35" min="10">
+        <input type="number" class="form-input" id="passengers" placeholder="台数を選択してから入力" min="10" max="40">
+        <p class="hint" id="passengersHint">先に使用台数を選択してください</p>
       </div>
       <div class="form-group">
         <label class="form-label">利用希望開始時刻<span class="required">必須</span></label>
@@ -477,77 +233,88 @@
         <label class="form-label">宿泊の有無<span class="required">必須</span></label>
         <div class="radio-group">
           <label class="radio-item">
-            <input type="radio" name="accommodation" value="無">無
+            <input type="radio" name="accommodation" value="無" onchange="toggleAccommodation(false)">無
           </label>
           <label class="radio-item">
-            <input type="radio" name="accommodation" value="有">有
+            <input type="radio" name="accommodation" value="有" onchange="toggleAccommodation(true)">有
           </label>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">行程・運行経路<span class="required">必須</span></label>
-        <textarea class="form-textarea" id="route" placeholder="例：9:00役場→10:00青森県庁→12:00役場"></textarea>
+
+      <!-- 宿泊ありの場合のみ表示 -->
+      <div class="conditional" id="lodgingSection">
+        <div class="form-group">
+          <label class="form-label">宿泊プラン<span class="required">必須</span></label>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="lodgingPlan" value="朝食・夕食付き">朝食・夕食付き</label>
+            <label class="radio-item"><input type="radio" name="lodgingPlan" value="朝食のみ">朝食のみ</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">運転手の宿泊料金</label>
+          <input type="number" class="form-input" id="lodgingCost" placeholder="例：8000" min="0">
+          <p class="hint">単位：円</p>
+          <div class="info-box">
+            💡 運転手の宿泊料は利用団体で負担する必要はありません。運転手が現金で支払うか、旅行会社等を通じて役場に請求されます。
+          </div>
+        </div>
       </div>
+
       <div class="form-group">
         <label class="form-label">高速道路・有料道路<span class="required">必須</span></label>
         <div class="radio-group">
-          <label class="radio-item">
-            <input type="radio" name="expressway" value="使用しない">使用しない
-          </label>
-          <label class="radio-item">
-            <input type="radio" name="expressway" value="使用する">使用する（料金は利用団体様の負担）
-          </label>
+          <label class="radio-item"><input type="radio" name="expressway" value="使用しない">使用しない</label>
+          <label class="radio-item"><input type="radio" name="expressway" value="使用する">使用する（料金は利用団体様の負担）</label>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">駐車場の確保<span class="required">必須</span></label>
+        <label class="form-label">目的地・経由地の駐車場<span class="required">必須</span></label>
         <div class="radio-group">
-          <label class="radio-item">
-            <input type="radio" name="parking" value="確保している">確保している
-          </label>
+          <label class="radio-item"><input type="radio" name="parking" value="確保している">確保している</label>
         </div>
+        <p class="hint">※有料駐車場の料金は利用団体の負担です。</p>
       </div>
+
+      <!-- 運転手の朝食：常時表示 -->
       <div class="form-group">
         <label class="form-label">運転手の朝食</label>
+        <p class="hint" style="margin-bottom:8px;">※おおむね6時前に出発する場合のみご回答ください。（強制ではありません。ご用意いただけると大変助かります。）</p>
         <div class="radio-group">
-          <label class="radio-item">
-            <input type="radio" name="breakfast" value="用意する">用意する
-          </label>
-          <label class="radio-item">
-            <input type="radio" name="breakfast" value="用意しない">用意しない
-          </label>
-          <label class="radio-item">
-            <input type="radio" name="breakfast" value="該当なし" checked>該当なし
-          </label>
+          <label class="radio-item"><input type="radio" name="breakfast" value="用意する">用意する</label>
+          <label class="radio-item"><input type="radio" name="breakfast" value="用意しない">用意しない</label>
+          <label class="radio-item"><input type="radio" name="breakfast" value="該当なし" checked>該当なし（6時以降出発）</label>
         </div>
       </div>
+
+      <!-- 運転手の昼食：常時表示 -->
       <div class="form-group">
         <label class="form-label">運転手の昼食</label>
+        <p class="hint" style="margin-bottom:8px;">※お昼をまたぐ場合のみご回答ください。（強制ではありません。ご用意いただけると大変助かります。）</p>
         <div class="radio-group">
-          <label class="radio-item">
-            <input type="radio" name="lunch" value="用意する">用意する
-          </label>
-          <label class="radio-item">
-            <input type="radio" name="lunch" value="用意しない">用意しない
-          </label>
-          <label class="radio-item">
-            <input type="radio" name="lunch" value="該当なし" checked>該当なし
-          </label>
+          <label class="radio-item"><input type="radio" name="lunch" value="用意する">用意する</label>
+          <label class="radio-item"><input type="radio" name="lunch" value="用意しない">用意しない</label>
+          <label class="radio-item"><input type="radio" name="lunch" value="該当なし" checked>該当なし（昼をまたがない）</label>
         </div>
       </div>
+
+      <!-- ファイル添付（先に表示） -->
       <div class="form-group">
-        <label class="form-label">宿泊プラン（宿泊の場合のみ）</label>
-        <div class="radio-group">
-          <label class="radio-item">
-            <input type="radio" name="lodgingPlan" value="朝食・夕食付き">朝食・夕食付き
-          </label>
-          <label class="radio-item">
-            <input type="radio" name="lodgingPlan" value="朝食のみ">朝食のみ
-          </label>
-          <label class="radio-item">
-            <input type="radio" name="lodgingPlan" value="該当なし" checked>該当なし
-          </label>
+        <label class="form-label">日程表・行程表の添付</label>
+        <p class="hint" style="margin-bottom:8px;">添付がある場合、下の「行程・運行経路」の入力を省略できます。</p>
+        <div class="file-upload-area" id="fileUploadArea" onclick="document.getElementById('fileInput').click()">
+          <div class="file-upload-icon">📎</div>
+          <div class="file-upload-text">タップしてファイルを選択</div>
+          <div class="file-upload-name" id="fileName"></div>
+          <div class="file-upload-limit">PDF・画像・Word・Excel／5MB以下</div>
         </div>
+        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="handleFileSelect(this)">
+      </div>
+
+      <!-- 行程・運行経路：ファイルなしの場合必須 -->
+      <div class="form-group">
+        <label class="form-label" id="routeLabel">行程・運行経路<span class="required" id="routeRequired">必須</span></label>
+        <p class="hint" id="routeHint" style="margin-bottom:8px;">※日程表を添付した場合は入力不要です。</p>
+        <textarea class="form-textarea" id="route" placeholder="例：9:00役場→10:00青森県庁→12:00役場"></textarea>
       </div>
     </div>
     <div class="btn-row">
@@ -573,46 +340,32 @@
   <div id="page-complete">
     <div class="card" style="text-align:center;">
       <div class="complete-icon">✅</div>
-      <h2 style="font-size:18px; margin-bottom:8px;">申請を受け付けました！</h2>
-      <p style="font-size:13px; color:var(--gray); line-height:1.6;">
-        内容を確認後、3営業日以内にご連絡します。
-      </p>
+      <h2 style="font-size:18px;margin-bottom:8px;">申請を受け付けました！</h2>
+      <p style="font-size:13px;color:var(--gray);line-height:1.6;">内容を確認後、3営業日以内にご連絡します。</p>
       <div class="app-no">
         <div class="app-no-label">申請番号</div>
         <div class="app-no-value" id="appNoDisplay"></div>
       </div>
-      <p style="font-size:12px; color:var(--gray);">
-        お問い合わせは総務課まで<br>
-        📞 0172-58-2111
-      </p>
+      <p style="font-size:12px;color:var(--gray);">お問い合わせは総務課まで<br>📞 0172-58-2111</p>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" onclick="liff.closeWindow()">閉じる</button>
     </div>
   </div>
-
 </div>
 
 <script>
-  // ==============================
-  // 設定
-  // ==============================
   const LIFF_ID = "2010127755-dhk0Xlcu";
   const GAS_URL = "https://script.google.com/macros/s/AKfycbzc-7vyHQlFmQlAndI84OkPaZPN2FVgHk-ot7Thy4mH9HMUwQSD0Zcke-W6wj5QAbkK0w/exec";
 
-  // ==============================
-  // 状態管理
-  // ==============================
   let currentDate = new Date();
   let selectedDate = null;
   let reservedData = {};
   let lineUserId = null;
   let currentYear = currentDate.getFullYear();
   let currentMonth = currentDate.getMonth();
+  let attachedFile = null;
 
-  // ==============================
-  // LIFF初期化
-  // ==============================
   async function initLiff() {
     try {
       await liff.init({ liffId: LIFF_ID });
@@ -626,8 +379,6 @@
     } catch (e) {
       console.warn("LIFF init error:", e);
     }
-
-    // 空き状況を取得
     try {
       const res = await fetch(GAS_URL + "?action=availability");
       const data = await res.json();
@@ -635,76 +386,51 @@
     } catch (e) {
       console.warn("空き状況取得エラー:", e);
     }
-
     document.getElementById("loading").style.display = "none";
     document.getElementById("main").style.display = "block";
     showPage("calendar");
     renderCalendar();
   }
 
-  // ==============================
-  // ページ切り替え
-  // ==============================
   function showPage(page) {
     ["calendar","form","confirm","complete"].forEach(p => {
       document.getElementById("page-" + p).style.display = "none";
     });
     document.getElementById("page-" + page).style.display = "block";
-
-    // ステップ更新
-    const steps = { calendar: 1, form: 2, confirm: 3, complete: 4 };
+    const steps = { calendar:1, form:2, confirm:3, complete:4 };
     const current = steps[page];
     for (let i = 1; i <= 4; i++) {
       const el = document.getElementById("step" + i);
       el.className = "step" + (i === current ? " active" : i < current ? " done" : "");
-      if (i < 4) {
-        document.getElementById("line" + i).className = "step-line" + (i < current ? " done" : "");
-      }
+      if (i < 4) document.getElementById("line" + i).className = "step-line" + (i < current ? " done" : "");
     }
     window.scrollTo(0, 0);
   }
 
-  // ==============================
-  // カレンダー描画
-  // ==============================
   function renderCalendar() {
     const today = new Date();
     today.setHours(0,0,0,0);
     const deadline = new Date(today);
-    deadline.setDate(deadline.getDate() + 10); // 10日後以降のみ予約可能
-
-    // 年度末（3月末）を計算
+    deadline.setDate(deadline.getDate() + 10);
     const fiscalEnd = today.getMonth() >= 3
       ? new Date(today.getFullYear() + 1, 2, 31)
       : new Date(today.getFullYear(), 2, 31);
 
-    document.getElementById("calTitle").textContent =
-      currentYear + "年 " + (currentMonth + 1) + "月";
-
-    // 前月ボタン制御
-    const prevBtn = document.getElementById("prevMonth");
-    prevBtn.disabled = (currentYear === today.getFullYear() && currentMonth <= today.getMonth());
-
-    // 翌月ボタン制御（年度末まで）
-    const nextBtn = document.getElementById("nextMonth");
+    document.getElementById("calTitle").textContent = currentYear + "年 " + (currentMonth + 1) + "月";
+    document.getElementById("prevMonth").disabled = (currentYear === today.getFullYear() && currentMonth <= today.getMonth());
     const nextMonth = new Date(currentYear, currentMonth + 1, 1);
-    nextBtn.disabled = nextMonth > fiscalEnd;
+    document.getElementById("nextMonth").disabled = nextMonth > fiscalEnd;
 
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
     const container = document.getElementById("calDays");
-    container.style.display = "contents";
     container.innerHTML = "";
 
-    // 空白セル
     for (let i = 0; i < firstDay; i++) {
       const empty = document.createElement("div");
       empty.className = "cal-day empty";
       container.appendChild(empty);
     }
-
-    // 日付セル
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(currentYear, currentMonth, d);
       date.setHours(0,0,0,0);
@@ -714,7 +440,6 @@
       const isPast = date < deadline;
       const isAfterFiscal = date > fiscalEnd;
       const dow = date.getDay();
-
       const cell = document.createElement("div");
       cell.className = "cal-day";
 
@@ -725,18 +450,13 @@
         cell.classList.add("full");
         cell.innerHTML = `<div class="cal-day-num">${d}</div><div class="cal-day-status">✕</div>`;
       } else {
-        if (avail === 2) cell.classList.add("avail-2");
-        else cell.classList.add("avail-1");
+        cell.classList.add(avail === 2 ? "avail-2" : "avail-1");
         if (dow === 0) cell.classList.add("sunday");
         if (dow === 6) cell.classList.add("saturday");
         cell.innerHTML = `<div class="cal-day-num">${d}</div><div class="cal-day-status">◯${avail}</div>`;
         cell.onclick = () => selectDate(date, cell);
       }
-
-      if (selectedDate && formatDate(selectedDate) === dateStr) {
-        cell.classList.add("selected");
-      }
-
+      if (selectedDate && formatDate(selectedDate) === dateStr) cell.classList.add("selected");
       container.appendChild(cell);
     }
   }
@@ -753,8 +473,8 @@
     cell.classList.add("selected");
     selectedDate = date;
     document.getElementById("btnToForm").disabled = false;
-    // 終了日の初期値を開始日と同じに設定
     document.getElementById("endDate").value = formatDate(date);
+    document.getElementById("endDate").min = formatDate(date);
   }
 
   function formatDate(date) {
@@ -765,41 +485,81 @@
   }
 
   function formatDateJP(date) {
-    const y = date.getFullYear();
-    const m = date.getMonth() + 1;
-    const d = date.getDate();
     const dows = ["日","月","火","水","木","金","土"];
-    return `${y}年${m}月${d}日（${dows[date.getDay()]}）`;
+    return `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日（${dows[date.getDay()]}）`;
   }
 
-  // ==============================
-  // ページ遷移
-  // ==============================
+  function updatePassengersLimit(buses) {
+    const input = document.getElementById("passengers");
+    const hint = document.getElementById("passengersHint");
+    if (buses === 1) {
+      input.min = 10; input.max = 40;
+      input.placeholder = "10〜40の数字を入力";
+      hint.textContent = "1台の場合：10人以上40人以下";
+    } else {
+      input.min = 41; input.max = 80;
+      input.placeholder = "41〜80の数字を入力";
+      hint.textContent = "2台の場合：41人以上80人以下";
+    }
+    input.value = "";
+  }
+
+  function toggleAccommodation(hasAccommodation) {
+    document.getElementById("lodgingSection").className = "conditional" + (hasAccommodation ? " show" : "");
+  }
+
+  // ファイル選択処理＋行程入力の必須切り替え
+  function handleFileSelect(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const maxSize = 5 * 1024 * 1024;
+    const allowed = ['application/pdf','image/jpeg','image/png','image/jpg',
+      'application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+
+    if (file.size > maxSize) {
+      alert("ファイルサイズが5MBを超えています。\n5MB以下のファイルを選択してください。");
+      input.value = "";
+      return;
+    }
+    if (!allowed.includes(file.type)) {
+      alert("このファイル形式は対応していません。\nPDF・画像（JPG/PNG）・Word・Excelをご利用ください。");
+      input.value = "";
+      return;
+    }
+
+    attachedFile = file;
+    const area = document.getElementById("fileUploadArea");
+    area.classList.add("has-file");
+    document.getElementById("fileName").textContent = `✅ ${file.name}（${(file.size/1024).toFixed(0)}KB）`;
+
+    // ファイルあり → 行程入力不要
+    document.getElementById("routeRequired").style.display = "none";
+    document.getElementById("routeHint").textContent = "※日程表を添付済みのため、入力不要です。";
+    document.getElementById("route").placeholder = "添付ファイルがある場合は入力不要です";
+  }
+
   function goToCalendar() { showPage("calendar"); }
 
   function goToForm() {
     if (!selectedDate) return;
-    document.getElementById("selectedDateLabel").textContent =
-      "📅 利用希望開始日：" + formatDateJP(selectedDate);
+    document.getElementById("selectedDateLabel").textContent = "📅 利用希望開始日：" + formatDateJP(selectedDate);
     showPage("form");
   }
 
   function goToConfirm() {
-    // バリデーション
     const required = [
-      { id: "groupName", label: "団体名" },
-      { id: "groupAddress", label: "団体所在地" },
-      { id: "representative", label: "代表者名" },
-      { id: "contactName", label: "担当者名" },
-      { id: "contactPhone", label: "担当者電話番号" },
-      { id: "purpose", label: "使用目的" },
-      { id: "passengers", label: "乗車予定人数" },
-      { id: "startTime", label: "利用希望開始時刻" },
-      { id: "endDate", label: "利用終了予定日" },
-      { id: "endTime", label: "利用終了予定時刻" },
-      { id: "route", label: "行程・運行経路" },
+      { id:"groupName", label:"団体名" },
+      { id:"groupAddress", label:"団体所在地" },
+      { id:"representative", label:"代表者名" },
+      { id:"contactName", label:"担当者名" },
+      { id:"contactPhone", label:"担当者電話番号" },
+      { id:"purpose", label:"使用目的" },
+      { id:"passengers", label:"乗車予定人数" },
+      { id:"startTime", label:"利用希望開始時刻" },
+      { id:"endDate", label:"利用終了予定日" },
+      { id:"endTime", label:"利用終了予定時刻" },
     ];
-
     for (const f of required) {
       if (!document.getElementById(f.id).value.trim()) {
         alert(`「${f.label}」を入力してください。`);
@@ -808,15 +568,39 @@
       }
     }
 
-    const radios = ["busCount", "accommodation", "expressway", "parking"];
+    // ファイルなしの場合は行程必須
+    if (!attachedFile && !document.getElementById("route").value.trim()) {
+      alert("「行程・運行経路」を入力するか、日程表ファイルを添付してください。");
+      document.getElementById("route").focus();
+      return;
+    }
+
+    const busCount = document.querySelector('input[name="busCount"]:checked');
+    if (!busCount) { alert("使用台数を選択してください。"); return; }
+    const passengers = parseInt(document.getElementById("passengers").value);
+    if (busCount.value.includes("1台") && (passengers < 10 || passengers > 40)) {
+      alert("1台の場合、乗車予定人数は10人以上40人以下で入力してください。");
+      return;
+    }
+    if (busCount.value.includes("2台") && (passengers < 41 || passengers > 80)) {
+      alert("2台の場合、乗車予定人数は41人以上80人以下で入力してください。");
+      return;
+    }
+
+    const radios = ["accommodation","expressway","parking"];
     for (const name of radios) {
       if (!document.querySelector(`input[name="${name}"]:checked`)) {
-        alert(`選択してください。`);
+        alert("必須項目を選択してください。");
         return;
       }
     }
 
-    // 確認テーブルを生成
+    const accommodation = document.querySelector('input[name="accommodation"]:checked').value;
+    if (accommodation === "有" && !document.querySelector('input[name="lodgingPlan"]:checked')) {
+      alert("宿泊プランを選択してください。");
+      return;
+    }
+
     const data = getFormData();
     const rows = [
       ["利用希望開始日", formatDateJP(selectedDate)],
@@ -833,16 +617,19 @@
       ["使用台数", data.busCount],
       ["乗車予定人数", data.passengers + "人"],
       ["宿泊の有無", data.accommodation],
-      ["行程・運行経路", data.route],
+      ...(data.accommodation === "有" ? [
+        ["宿泊プラン", data.lodgingPlan],
+        ["運転手宿泊料金", data.lodgingCost ? data.lodgingCost + "円" : "未入力"],
+      ] : []),
+      ["行程・運行経路", attachedFile ? "（添付ファイルあり）" : data.route],
       ["高速道路使用", data.expressway],
       ["駐車場確保", data.parking],
       ["運転手朝食", data.breakfast],
       ["運転手昼食", data.lunch],
-      ["宿泊プラン", data.lodgingPlan],
+      ["添付ファイル", attachedFile ? attachedFile.name : "なし"],
     ];
 
-    const table = document.getElementById("confirmTable");
-    table.innerHTML = rows.map(([k, v]) =>
+    document.getElementById("confirmTable").innerHTML = rows.map(([k,v]) =>
       `<tr><td>${k}</td><td>${v}</td></tr>`
     ).join("");
 
@@ -861,6 +648,8 @@
       busCount: document.querySelector('input[name="busCount"]:checked')?.value || "",
       passengers: document.getElementById("passengers").value.trim(),
       accommodation: document.querySelector('input[name="accommodation"]:checked')?.value || "",
+      lodgingPlan: document.querySelector('input[name="lodgingPlan"]:checked')?.value || "",
+      lodgingCost: document.getElementById("lodgingCost").value.trim(),
       startDate: formatDate(selectedDate),
       startTime: document.getElementById("startTime").value,
       endDate: document.getElementById("endDate").value,
@@ -870,14 +659,10 @@
       parking: document.querySelector('input[name="parking"]:checked')?.value || "",
       breakfast: document.querySelector('input[name="breakfast"]:checked')?.value || "",
       lunch: document.querySelector('input[name="lunch"]:checked')?.value || "",
-      lodgingPlan: document.querySelector('input[name="lodgingPlan"]:checked')?.value || "",
       lineUserId: lineUserId || "",
     };
   }
 
-  // ==============================
-  // 申請送信
-  // ==============================
   async function submitReservation() {
     const btn = document.querySelector('#page-confirm .btn-accent');
     btn.disabled = true;
@@ -885,16 +670,21 @@
 
     try {
       const data = getFormData();
-      const res = await fetch(GAS_URL, {
+      if (attachedFile) {
+        const base64 = await fileToBase64(attachedFile);
+        data.fileName = attachedFile.name;
+        data.fileType = attachedFile.type;
+        data.fileData = base64;
+      }
+
+      await fetch(GAS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
         mode: "no-cors"
       });
 
-      // no-corsの場合レスポンスが読めないが送信はできている
-      // 申請番号を仮生成して表示
-      const appNo = "R" + new Date().getFullYear() + "-" + String(Math.floor(Math.random() * 900) + 100);
+      const appNo = "R" + new Date().getFullYear() + "-" + String(Math.floor(Math.random()*900)+100);
       document.getElementById("appNoDisplay").textContent = appNo;
       showPage("complete");
 
@@ -905,7 +695,15 @@
     }
   }
 
-  // 初期化実行
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   initLiff();
 </script>
 </body>
