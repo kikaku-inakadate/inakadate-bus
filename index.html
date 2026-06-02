@@ -681,7 +681,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-        mode: "no-cors"
+        mode: "cors"
       });
 
       const appNo = "R" + new Date().getFullYear() + "-" + String(Math.floor(Math.random()*900)+100);
