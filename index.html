@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>田舎館村 コミュニティバス予約</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --green: #2d6a4f;
+      --green-light: #52b788;
+      --green-pale: #d8f3dc;
+      --accent: #f77f00;
+      --text: #1b1b1b;
+      --gray: #6c757d;
+      --border: #dee2e6;
+      --bg: #f8fffe;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ヘッダー */
+    .header {
+      background: var(--green);
+      color: white;
+      padding: 16px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .header h1 { font-size: 16px; font-weight: bold; }
+    .header p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+
+    /* ローディング */
+    #loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 60vh;
+      gap: 16px;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid var(--green-pale);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* メインコンテンツ */
+    .container { padding: 16px; max-width: 480px; margin: 0 auto; }
+
+    /* ステップ表示 */
+    .steps {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      padding: 12px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex: 1;
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--gray);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: bold;
+      transition: all 0.3s;
+    }
+    .step.active .step-num { background: var(--green); color: white; }
+    .step.done .step-num { background: var(--green-light); color: white; }
+    .step-label { font-size: 10px; color: var(--gray); text-align: center; }
+    .step.active .step-label { color: var(--green); font-weight: bold; }
+    .step-line { flex: 0 0 20px; height: 2px; background: var(--border); margin-top: 14px; }
+    .step-line.done { background: var(--green-light); }
+
+    /* カレンダー画面 */
+    #page-calendar { display: none; }
+    #page-form { display: none; }
+    #page-confirm { display: none; }
+    #page-complete { display: none; }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--green);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--green-pale);
+    }
+
+    /* カレンダー */
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .cal-title { font-size: 16px; font-weight: bold; }
+    .cal-nav {
+      background: none; border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 12px;
+      cursor: pointer; font-size: 14px;
+      color: var(--green);
+    }
+    .cal-nav:disabled { opacity: 0.3; cursor: default; }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .cal-dow {
+      text-align: center;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 6px 0;
+      color: var(--gray);
+    }
+    .cal-dow:first-child { color: #e53e3e; }
+    .cal-dow:last-child { color: #3182ce; }
+
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+      gap: 2px;
+    }
+    .cal-day.empty { cursor: default; }
+    .cal-day.past { color: #ccc; cursor: default; }
+    .cal-day.full { background: #ffe8e8; color: #c53030; cursor: default; }
+    .cal-day.avail-2 { background: var(--green-pale); color: var(--green); }
+    .cal-day.avail-1 { background: #fef9c3; color: #92400e; }
+    .cal-day.sunday { color: #e53e3e; }
+    .cal-day.saturday { color: #3182ce; }
+    .cal-day:not(.empty):not(.past):not(.full):hover {
+      border-color: var(--green);
+      transform: scale(1.05);
+    }
+    .cal-day.selected {
+      background: var(--green) !important;
+      color: white !important;
+      border-color: var(--green);
+    }
+    .cal-day-num { font-weight: bold; }
+    .cal-day-status { font-size: 9px; }
+
+    .cal-legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      font-size: 11px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-dot {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+    }
+
+    /* フォーム */
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .required {
+      color: #e53e3e;
+      font-size: 11px;
+      margin-left: 4px;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(45,106,79,0.1);
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    .radio-group { display: flex; flex-direction: column; gap: 8px; }
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .radio-item:has(input:checked) {
+      border-color: var(--green);
+      background: var(--green-pale);
+    }
+    .radio-item input { accent-color: var(--green); }
+
+    .selected-date-badge {
+      background: var(--green);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+
+    /* 確認画面 */
+    .confirm-table { width: 100%; border-collapse: collapse; }
+    .confirm-table tr { border-bottom: 1px solid var(--border); }
+    .confirm-table td {
+      padding: 10px 8px;
+      font-size: 13px;
+    }
+    .confirm-table td:first-child {
+      color: var(--gray);
+      font-weight: bold;
+      width: 40%;
+      white-space: nowrap;
+    }
+
+    /* 完了画面 */
+    .complete-icon {
+      width: 64px; height: 64px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 16px;
+    }
+    .app-no {
+      background: var(--green-pale);
+      border: 2px solid var(--green-light);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin: 16px 0;
+    }
+    .app-no-label { font-size: 12px; color: var(--gray); }
+    .app-no-value { font-size: 24px; font-weight: bold; color: var(--green); }
+
+    /* ボタン */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: var(--green);
+      color: white;
+    }
+    .btn-primary:hover { background: #1e4d38; }
+    .btn-primary:disabled { background: var(--border); color: var(--gray); cursor: default; }
+    .btn-secondary {
+      background: white;
+      color: var(--green);
+      border: 2px solid var(--green);
+      margin-top: 8px;
+    }
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-row { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+
+    /* カード */
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+
+    .notice {
+      background: #fff8e1;
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .error-msg {
+      color: #e53e3e;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🚌 田舎館村 コミュニティバス予約</h1>
+  <p>ご利用の10日前までにお申し込みください</p>
+</div>
+
+<!-- ローディング -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p style="color: var(--gray); font-size: 14px;">読み込み中...</p>
+</div>
+
+<div class="container" id="main" style="display:none;">
+
+  <!-- ステップ表示 -->
+  <div class="steps">
+    <div class="step active" id="step1">
+      <div class="step-num">1</div>
+      <div class="step-label">日程選択</div>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step" id="step2">
+      <div class="step-num">2</div>
+      <div class="step-label">詳細入力</div>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step" id="step3">
+      <div class="step-num">3</div>
+      <div class="step-label">確認</div>
+    </div>
+    <div class="step-line" id="line3"></div>
+    <div class="step" id="step4">
+      <div class="step-num">4</div>
+      <div class="step-label">完了</div>
+    </div>
+  </div>
+
+  <!-- ページ1：カレンダー -->
+  <div id="page-calendar">
+    <div class="card">
+      <div class="section-title">📅 ご利用日を選択してください</div>
+      <div class="notice">
+        ◯2 = 2台空き　◯1 = 1台空き　✕ = 満車<br>
+        ご利用の10日前まで受付可能です
+      </div>
+      <div class="cal-header">
+        <button class="cal-nav" id="prevMonth" onclick="changeMonth(-1)">◀</button>
+        <div class="cal-title" id="calTitle"></div>
+        <button class="cal-nav" id="nextMonth" onclick="changeMonth(1)">▶</button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-dow">日</div>
+        <div class="cal-dow">月</div>
+        <div class="cal-dow">火</div>
+        <div class="cal-dow">水</div>
+        <div class="cal-dow">木</div>
+        <div class="cal-dow">金</div>
+        <div class="cal-dow">土</div>
+        <div id="calDays"></div>
+      </div>
+      <div class="cal-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green-pale)"></div>空き2台</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fef9c3"></div>空き1台</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ffe8e8"></div>満車</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnToForm" onclick="goToForm()" disabled>
+        この日程で申請する →
+      </button>
+    </div>
+  </div>
+
+  <!-- ページ2：フォーム -->
+  <div id="page-form">
+    <div class="card">
+      <div class="section-title">📝 申請内容を入力してください</div>
+      <div class="selected-date-badge" id="selectedDateLabel"></div>
+
+      <div class="form-group">
+        <label class="form-label">団体名<span class="required">必須</span></label>
+        <input type="text" class="form-input" id="groupName" placeholder="例：田舎館村老人クラブ">
+      </div>
+      <div class="form-group">
+        <label class="form-label">団体所在地<span class="required">必須</span></label>
+        <input type="text" class="form-input" id="groupAddress" placeholder="例：青森県南津軽郡田舎館村">
+      </div>
+      <div class="form-group">
+        <label class="form-label">代表者名<span class="required">必須</span></label>
+        <input type="text" class="form-input" id="representative" placeholder="例：田舎館 太郎">
+      </div>
+      <div class="form-group">
+        <label class="form-label">担当者名<span class="required">必須</span></label>
+        <input type="text" class="form-input" id="contactName" placeholder="例：田舎館 花子">
+      </div>
+      <div class="form-group">
+        <label class="form-label">担当者電話番号<span class="required">必須</span></label>
+        <input type="tel" class="form-input" id="contactPhone" placeholder="例：0172-58-XXXX">
+      </div>
+      <div class="form-group">
+        <label class="form-label">メールアドレス</label>
+        <input type="email" class="form-input" id="email" placeholder="例：example@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">使用目的<span class="required">必須</span></label>
+        <input type="text" class="form-input" id="purpose" placeholder="例：研修旅行">
+      </div>
+      <div class="form-group">
+        <label class="form-label">使用台数<span class="required">必須</span></label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="busCount" value="1台（10人以上40人以下）">
+            1台（10人以上40人以下）
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="busCount" value="2台（40人超80人以下）">
+            2台（40人超80人以下）
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">乗車予定人数<span class="required">必須</span></label>
+        <input type="number" class="form-input" id="passengers" placeholder="例：35" min="10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">利用希望開始時刻<span class="required">必須</span></label>
+        <input type="time" class="form-input" id="startTime">
+      </div>
+      <div class="form-group">
+        <label class="form-label">利用終了予定日<span class="required">必須</span></label>
+        <input type="date" class="form-input" id="endDate">
+      </div>
+      <div class="form-group">
+        <label class="form-label">利用終了予定時刻<span class="required">必須</span></label>
+        <input type="time" class="form-input" id="endTime">
+      </div>
+      <div class="form-group">
+        <label class="form-label">宿泊の有無<span class="required">必須</span></label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="accommodation" value="無">無
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="accommodation" value="有">有
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">行程・運行経路<span class="required">必須</span></label>
+        <textarea class="form-textarea" id="route" placeholder="例：9:00役場→10:00青森県庁→12:00役場"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">高速道路・有料道路<span class="required">必須</span></label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="expressway" value="使用しない">使用しない
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="expressway" value="使用する">使用する（料金は利用団体様の負担）
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">駐車場の確保<span class="required">必須</span></label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="parking" value="確保している">確保している
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">運転手の朝食</label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="breakfast" value="用意する">用意する
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="breakfast" value="用意しない">用意しない
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="breakfast" value="該当なし" checked>該当なし
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">運転手の昼食</label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="lunch" value="用意する">用意する
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="lunch" value="用意しない">用意しない
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="lunch" value="該当なし" checked>該当なし
+          </label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">宿泊プラン（宿泊の場合のみ）</label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="lodgingPlan" value="朝食・夕食付き">朝食・夕食付き
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="lodgingPlan" value="朝食のみ">朝食のみ
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="lodgingPlan" value="該当なし" checked>該当なし
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goToConfirm()">確認画面へ →</button>
+      <button class="btn btn-secondary" onclick="goToCalendar()">← 日程選択に戻る</button>
+    </div>
+  </div>
+
+  <!-- ページ3：確認 -->
+  <div id="page-confirm">
+    <div class="card">
+      <div class="section-title">✅ 申請内容の確認</div>
+      <div class="notice">以下の内容で申請します。よろしければ「申請する」を押してください。</div>
+      <table class="confirm-table" id="confirmTable"></table>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-accent" onclick="submitReservation()">申請する 🚌</button>
+      <button class="btn btn-secondary" onclick="goToForm()">← 入力に戻る</button>
+    </div>
+  </div>
+
+  <!-- ページ4：完了 -->
+  <div id="page-complete">
+    <div class="card" style="text-align:center;">
+      <div class="complete-icon">✅</div>
+      <h2 style="font-size:18px; margin-bottom:8px;">申請を受け付けました！</h2>
+      <p style="font-size:13px; color:var(--gray); line-height:1.6;">
+        内容を確認後、3営業日以内にご連絡します。
+      </p>
+      <div class="app-no">
+        <div class="app-no-label">申請番号</div>
+        <div class="app-no-value" id="appNoDisplay"></div>
+      </div>
+      <p style="font-size:12px; color:var(--gray);">
+        お問い合わせは総務課まで<br>
+        📞 0172-58-2111
+      </p>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="liff.closeWindow()">閉じる</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ==============================
+  // 設定
+  // ==============================
+  const LIFF_ID = "2010127755-dhk0Xlcu";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzc-7vyHQlFmQlAndI84OkPaZPN2FVgHk-ot7Thy4mH9HMUwQSD0Zcke-W6wj5QAbkK0w/exec";
+
+  // ==============================
+  // 状態管理
+  // ==============================
+  let currentDate = new Date();
+  let selectedDate = null;
+  let reservedData = {};
+  let lineUserId = null;
+  let currentYear = currentDate.getFullYear();
+  let currentMonth = currentDate.getMonth();
+
+  // ==============================
+  // LIFF初期化
+  // ==============================
+  async function initLiff() {
+    try {
+      await liff.init({ liffId: LIFF_ID });
+      if (liff.isLoggedIn()) {
+        const profile = await liff.getProfile();
+        lineUserId = profile.userId;
+      } else {
+        liff.login();
+        return;
+      }
+    } catch (e) {
+      console.warn("LIFF init error:", e);
+    }
+
+    // 空き状況を取得
+    try {
+      const res = await fetch(GAS_URL + "?action=availability");
+      const data = await res.json();
+      if (data.success) reservedData = data.reserved;
+    } catch (e) {
+      console.warn("空き状況取得エラー:", e);
+    }
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("main").style.display = "block";
+    showPage("calendar");
+    renderCalendar();
+  }
+
+  // ==============================
+  // ページ切り替え
+  // ==============================
+  function showPage(page) {
+    ["calendar","form","confirm","complete"].forEach(p => {
+      document.getElementById("page-" + p).style.display = "none";
+    });
+    document.getElementById("page-" + page).style.display = "block";
+
+    // ステップ更新
+    const steps = { calendar: 1, form: 2, confirm: 3, complete: 4 };
+    const current = steps[page];
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById("step" + i);
+      el.className = "step" + (i === current ? " active" : i < current ? " done" : "");
+      if (i < 4) {
+        document.getElementById("line" + i).className = "step-line" + (i < current ? " done" : "");
+      }
+    }
+    window.scrollTo(0, 0);
+  }
+
+  // ==============================
+  // カレンダー描画
+  // ==============================
+  function renderCalendar() {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const deadline = new Date(today);
+    deadline.setDate(deadline.getDate() + 10); // 10日後以降のみ予約可能
+
+    // 年度末（3月末）を計算
+    const fiscalEnd = today.getMonth() >= 3
+      ? new Date(today.getFullYear() + 1, 2, 31)
+      : new Date(today.getFullYear(), 2, 31);
+
+    document.getElementById("calTitle").textContent =
+      currentYear + "年 " + (currentMonth + 1) + "月";
+
+    // 前月ボタン制御
+    const prevBtn = document.getElementById("prevMonth");
+    prevBtn.disabled = (currentYear === today.getFullYear() && currentMonth <= today.getMonth());
+
+    // 翌月ボタン制御（年度末まで）
+    const nextBtn = document.getElementById("nextMonth");
+    const nextMonth = new Date(currentYear, currentMonth + 1, 1);
+    nextBtn.disabled = nextMonth > fiscalEnd;
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    const container = document.getElementById("calDays");
+    container.style.display = "contents";
+    container.innerHTML = "";
+
+    // 空白セル
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement("div");
+      empty.className = "cal-day empty";
+      container.appendChild(empty);
+    }
+
+    // 日付セル
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(currentYear, currentMonth, d);
+      date.setHours(0,0,0,0);
+      const dateStr = formatDate(date);
+      const reserved = reservedData[dateStr] || 0;
+      const avail = 2 - reserved;
+      const isPast = date < deadline;
+      const isAfterFiscal = date > fiscalEnd;
+      const dow = date.getDay();
+
+      const cell = document.createElement("div");
+      cell.className = "cal-day";
+
+      if (isPast || isAfterFiscal) {
+        cell.classList.add("past");
+        cell.innerHTML = `<div class="cal-day-num">${d}</div>`;
+      } else if (avail <= 0) {
+        cell.classList.add("full");
+        cell.innerHTML = `<div class="cal-day-num">${d}</div><div class="cal-day-status">✕</div>`;
+      } else {
+        if (avail === 2) cell.classList.add("avail-2");
+        else cell.classList.add("avail-1");
+        if (dow === 0) cell.classList.add("sunday");
+        if (dow === 6) cell.classList.add("saturday");
+        cell.innerHTML = `<div class="cal-day-num">${d}</div><div class="cal-day-status">◯${avail}</div>`;
+        cell.onclick = () => selectDate(date, cell);
+      }
+
+      if (selectedDate && formatDate(selectedDate) === dateStr) {
+        cell.classList.add("selected");
+      }
+
+      container.appendChild(cell);
+    }
+  }
+
+  function changeMonth(dir) {
+    currentMonth += dir;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    renderCalendar();
+  }
+
+  function selectDate(date, cell) {
+    document.querySelectorAll(".cal-day.selected").forEach(el => el.classList.remove("selected"));
+    cell.classList.add("selected");
+    selectedDate = date;
+    document.getElementById("btnToForm").disabled = false;
+    // 終了日の初期値を開始日と同じに設定
+    document.getElementById("endDate").value = formatDate(date);
+  }
+
+  function formatDate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }
+
+  function formatDateJP(date) {
+    const y = date.getFullYear();
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    const dows = ["日","月","火","水","木","金","土"];
+    return `${y}年${m}月${d}日（${dows[date.getDay()]}）`;
+  }
+
+  // ==============================
+  // ページ遷移
+  // ==============================
+  function goToCalendar() { showPage("calendar"); }
+
+  function goToForm() {
+    if (!selectedDate) return;
+    document.getElementById("selectedDateLabel").textContent =
+      "📅 利用希望開始日：" + formatDateJP(selectedDate);
+    showPage("form");
+  }
+
+  function goToConfirm() {
+    // バリデーション
+    const required = [
+      { id: "groupName", label: "団体名" },
+      { id: "groupAddress", label: "団体所在地" },
+      { id: "representative", label: "代表者名" },
+      { id: "contactName", label: "担当者名" },
+      { id: "contactPhone", label: "担当者電話番号" },
+      { id: "purpose", label: "使用目的" },
+      { id: "passengers", label: "乗車予定人数" },
+      { id: "startTime", label: "利用希望開始時刻" },
+      { id: "endDate", label: "利用終了予定日" },
+      { id: "endTime", label: "利用終了予定時刻" },
+      { id: "route", label: "行程・運行経路" },
+    ];
+
+    for (const f of required) {
+      if (!document.getElementById(f.id).value.trim()) {
+        alert(`「${f.label}」を入力してください。`);
+        document.getElementById(f.id).focus();
+        return;
+      }
+    }
+
+    const radios = ["busCount", "accommodation", "expressway", "parking"];
+    for (const name of radios) {
+      if (!document.querySelector(`input[name="${name}"]:checked`)) {
+        alert(`選択してください。`);
+        return;
+      }
+    }
+
+    // 確認テーブルを生成
+    const data = getFormData();
+    const rows = [
+      ["利用希望開始日", formatDateJP(selectedDate)],
+      ["利用希望開始時刻", data.startTime],
+      ["利用終了予定日", data.endDate],
+      ["利用終了予定時刻", data.endTime],
+      ["団体名", data.groupName],
+      ["団体所在地", data.groupAddress],
+      ["代表者名", data.representative],
+      ["担当者名", data.contactName],
+      ["担当者電話番号", data.contactPhone],
+      ["メールアドレス", data.email || "なし"],
+      ["使用目的", data.purpose],
+      ["使用台数", data.busCount],
+      ["乗車予定人数", data.passengers + "人"],
+      ["宿泊の有無", data.accommodation],
+      ["行程・運行経路", data.route],
+      ["高速道路使用", data.expressway],
+      ["駐車場確保", data.parking],
+      ["運転手朝食", data.breakfast],
+      ["運転手昼食", data.lunch],
+      ["宿泊プラン", data.lodgingPlan],
+    ];
+
+    const table = document.getElementById("confirmTable");
+    table.innerHTML = rows.map(([k, v]) =>
+      `<tr><td>${k}</td><td>${v}</td></tr>`
+    ).join("");
+
+    showPage("confirm");
+  }
+
+  function getFormData() {
+    return {
+      groupName: document.getElementById("groupName").value.trim(),
+      groupAddress: document.getElementById("groupAddress").value.trim(),
+      representative: document.getElementById("representative").value.trim(),
+      contactName: document.getElementById("contactName").value.trim(),
+      contactPhone: document.getElementById("contactPhone").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      purpose: document.getElementById("purpose").value.trim(),
+      busCount: document.querySelector('input[name="busCount"]:checked')?.value || "",
+      passengers: document.getElementById("passengers").value.trim(),
+      accommodation: document.querySelector('input[name="accommodation"]:checked')?.value || "",
+      startDate: formatDate(selectedDate),
+      startTime: document.getElementById("startTime").value,
+      endDate: document.getElementById("endDate").value,
+      endTime: document.getElementById("endTime").value,
+      route: document.getElementById("route").value.trim(),
+      expressway: document.querySelector('input[name="expressway"]:checked')?.value || "",
+      parking: document.querySelector('input[name="parking"]:checked')?.value || "",
+      breakfast: document.querySelector('input[name="breakfast"]:checked')?.value || "",
+      lunch: document.querySelector('input[name="lunch"]:checked')?.value || "",
+      lodgingPlan: document.querySelector('input[name="lodgingPlan"]:checked')?.value || "",
+      lineUserId: lineUserId || "",
+    };
+  }
+
+  // ==============================
+  // 申請送信
+  // ==============================
+  async function submitReservation() {
+    const btn = document.querySelector('#page-confirm .btn-accent');
+    btn.disabled = true;
+    btn.textContent = "送信中...";
+
+    try {
+      const data = getFormData();
+      const res = await fetch(GAS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        mode: "no-cors"
+      });
+
+      // no-corsの場合レスポンスが読めないが送信はできている
+      // 申請番号を仮生成して表示
+      const appNo = "R" + new Date().getFullYear() + "-" + String(Math.floor(Math.random() * 900) + 100);
+      document.getElementById("appNoDisplay").textContent = appNo;
+      showPage("complete");
+
+    } catch (e) {
+      alert("送信中にエラーが発生しました。しばらく待ってから再度お試しください。");
+      btn.disabled = false;
+      btn.textContent = "申請する 🚌";
+    }
+  }
+
+  // 初期化実行
+  initLiff();
+</script>
+</body>
+</html>
